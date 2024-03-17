@@ -1,12 +1,15 @@
 package com.wigroup.broadcasts
 
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +17,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import com.wigroup.broadcasts.ui.theme.BroadcastsTheme
+import java.util.Calendar
 
 class MainActivity : ComponentActivity() {
 
@@ -29,7 +33,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Box {
+                    Column {
                         Button(onClick = {
                             println("Click $count")
                             Intent(MyReceiver.ACTION_CLICKED).apply {
@@ -38,6 +42,10 @@ class MainActivity : ComponentActivity() {
                             }
                         }) {
                             Text(text = "Button")
+                        }
+
+                        Button(onClick = { alarm() }) {
+                            Text(text = "Alarm")
                         }
                     }
                 }
@@ -55,6 +63,19 @@ class MainActivity : ComponentActivity() {
             @Suppress("UnspecifiedRegisterReceiverFlag")
             registerReceiver(receiver, intentFilter)
         }
+    }
+
+    @SuppressLint("ScheduleExactAlarm")
+    private fun alarm() {
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.SECOND, 30)
+        val intent = AlarmReceiver.newIntent(this)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, 100, intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
     }
 
     override fun onDestroy() {
